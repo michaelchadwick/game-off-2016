@@ -174,7 +174,8 @@ function draw_title()
   if i%8==0 then
    for j=0,128 do
     if j%8==0 then
-     if i!=56 and
+     if i!=48 and
+        i!=56 and 
         i!=64 then
       print("",j,i,flr(rnd(15)))
      end
@@ -182,8 +183,12 @@ function draw_title()
    end
   end
  end
- print("bugracer",40,56,10)
- print("press z/x to race!",28,64,10)
+ print("bugracer",
+  40,48,10)
+ print("press z/x to race!",
+  28,56,10)
+ print("time to beat:"..get_high_score().."s",
+  26,64,7)
 end
 
 function draw_bg()
@@ -201,7 +206,7 @@ function game_win(c)
   c.y-16,7)
  sfx(2)
  music(-1)
- log_score()
+ log_score(t)
 end
 
 function _update()
@@ -210,6 +215,7 @@ function _update()
    game_init()
   end
  elseif game_state==state_play then
+  cls()
   t+=1
  elseif game_state==state_dead then
   game_over()
@@ -306,7 +312,27 @@ function coll(a,b)
  end
 end
 
-function log_score()
+function get_high_score()
+ a={}
+ for i=0,63 do
+  add(a,dget(i))
+ end
+ for i=1,#a do
+  local j=i
+  while j>1 and a[j-1]<a[j] do
+   a[j],a[j-1]=a[j-1],a[j]
+   j-=1
+  end
+ end
+ return round(a[#a]/30,2)
+end
+
+function log_score(new_time)
+ for i=0,63 do
+  if dget(i) == 0 then
+   dset(i,new_time)
+  end
+ end
 end
 __gfx__
 0b0000b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
