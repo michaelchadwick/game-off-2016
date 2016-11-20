@@ -1,17 +1,11 @@
 pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
---racing
+--bugracer
 --simple overhead racing game
 
 --sprites
-sp_car=2
 sp_flag=68
-sp_grs_sq=64
-sp_grs_curve1=65
-sp_grs_curve2=66
-sp_grs_curve3=81
-sp_grs_curve4=82
 
 --colors
 clr_bg=3
@@ -29,18 +23,16 @@ btn_l=0
 btn_r=1
 btn_u=2
 btn_d=3
-
---directions
-dir_l=0
-dir_r=1
-dir_u=2
-dir_d=3
+btn_z=4
+btn_x=5
 
 --game_states
-state_play=0
-state_dead=1
-state_win=2
+state_title=0
+state_play=1
+state_dead=2
+state_win=3
 
+--car class
 car={}
 car.new = function(init)
  init = init or {}
@@ -51,9 +43,9 @@ car.new = function(init)
  self.rot = init.rot or 0
  self.rspd = init.rspd or 0
  self.spd = init.spd or 0
+ self.spd_max = init.spd_max or 1.8
  self.update = car.update
  self.draw = car.draw
- self.bounds = car.bounds
  self.camera = car.camera
  self.box={
   x1=0,y1=0,
@@ -65,15 +57,15 @@ end
 
 car.update = function(self)
  --check rotation
- if btn(0) then
+ if btn(btn_l) then
   self.rot+=self.rspd
- elseif btn(1) then
+ elseif btn(btn_r) then
   self.rot-=self.rspd
  end
  --check speed
- if btn(2) then
-  self.spd=min(1.75,self.spd+0.4)
- elseif btn(3) then
+ if btn(btn_u) then
+  self.spd=min(self.spd_max,self.spd+0.4)
+ elseif btn(btn_d) then
   self.spd=max(-1,self.spd-0.4)
  else
   self.spd*=0.9
@@ -83,8 +75,29 @@ car.update = function(self)
  end
 
  --update position
- self.x=self.x-self.spd*sin(-self.rot)
- self.y=self.y-self.spd*cos(-self.rot)
+ local tx=self.x-self.spd*sin(-self.rot)
+ local ty=self.y-self.spd*cos(-self.rot)
+
+ --check spr at x car is going
+ local id=mget(
+  flr(tx/self.size),
+  flr(self.y/self.size))
+ local hit=fget(id,0)
+ if hit then self.spd*=-1.5
+ else self.x=tx end
+ 
+ --check spr at y car is going
+ id=mget(
+  flr(self.x/self.size),
+  flr(ty/self.size))
+ hit=fget(id,0)
+ if hit then self.spd*=-1.5
+ else self.y=ty end
+
+ --end flag
+ if coll(self,flag) then
+  game_win(self)
+ end
 end
 
 car.draw = function(self,init)
@@ -92,13 +105,11 @@ car.draw = function(self,init)
  local s=sin(r)
  local c=cos(r)
  local b=s*s+c*c
- --local size=self.size/2
- --local w=sqrt(size^2*2)
- for y=-14,13 do
-  for x=-14,13 do
+ for y=-6,5 do
+  for x=-6,5 do
    local ox=( s*y+c*x)/b
    local oy=(-s*x+c*y)/b
-   local col=sget(ox+self.size,oy+self.size)
+   local col=sget(ox+4,oy+4)
    if col>0 then
     pset(self.x+x,self.y+y,col)
    end
@@ -106,51 +117,38 @@ car.draw = function(self,init)
  end
 end
 
-car.bounds = function(self)
- --grass
- if pget(self.x,self.y)==3 then
-  self.spd=-1
-  
- elseif coll(self,flag) then
-  game_win(self)
- end
-end
-
 car.camera = function(self)
- if btn(4) and btn(5) then
-  if btn(0) then cam_x-=1 end
-  if btn(1) then cam_x+=1 end
-  if btn(2) then cam_y-=1 end
-  if btn(3) then cam_y+=1 end
+ if btn(btn_z) and btn(btn_x) then
+  if btn(btn_l) then cam_x-=1 end
+  if btn(btn_r) then cam_x+=1 end
+  if btn(btn_u) then cam_y-=1 end
+  if btn(btn_d) then cam_y+=1 end
  end
  cam_x=self.x-screen_w/2
  cam_y=self.y-screen_w/2
 end
 
 function _init()
- cls()
- og_x=90
+ cartdata("neb_bugracing")
+ og_x=94
  og_y=100
- max_acc=2
- acc_step=0.05
  rot_spd=0.03125
- game_init()
+ game_state=state_title
 end
 
 function game_init()
+ cls()
  t=0
- music(0)
+ game_state=state_play
+ music(-1)
  cam_x=0
  cam_y=0
- spd_mod=1
- game_state=state_play
 
  flag={sp=sp_flag,x=145,y=95}
  flag.box={
-  x1=0,y1=0,
-  x2=7,y2=7
+  x1=0,y1=0,x2=7,y2=7
  }
- 
+
  cars={}
  local car = car.new({
   x=og_x,
@@ -165,21 +163,27 @@ end
 function game_over()
  print("game over",45,48,8)
  print("press z or x to restart",18,60,8)
- if btn(4) or btn(5) then
+ if btnp(btn_z) or btnp(btn_x) then
   game_init()
  end
 end
 
-function _update()
- t+=1
- 
- if game_state==state_dead then
-  game_over()
- elseif game_state==state_win then
-  if btn(4) or btn(5) then
-   game_init()
+function draw_title()
+ rectfill(wall_l,wall_t,wall_r,wall_b,1)
+ for i=0,128 do
+  if i%8==0 then
+   for j=0,128 do
+    if j%8==0 then
+     if i!=56 and
+        i!=64 then
+      print("Å",j,i,flr(rnd(15)))
+     end
+    end
+   end
   end
  end
+ print("ÅbugracerÅ",40,56,10)
+ print("press z/x to race!",28,64,10)
 end
 
 function draw_bg()
@@ -187,23 +191,44 @@ function draw_bg()
 end
 
 function game_win(c)
+ game_state=state_win
+ c.spd=0
  rectfill(c.x-23,c.y-25,c.x+25,c.y-10,3)
  print("òyou winò",c.x-20,c.y-22,7)
- print("time:"..round(t/30,1),c.x-15,c.y-16,7)
+ print(
+  "time:"..round(t/30,1).."s",
+  c.x-20,
+  c.y-16,7)
  sfx(2)
  music(-1)
- game_state=state_win
+ log_score()
 end
 
---system draw
+function _update()
+ if game_state==state_title then
+  if btnp(btn_z) or btnp(btn_x) then
+   game_init()
+  end
+ elseif game_state==state_play then
+  t+=1
+ elseif game_state==state_dead then
+  game_over()
+ elseif game_state==state_win then
+  if btnp(btn_z) or btnp(btn_x) then
+   t=0
+   game_init()
+  end
+ end
+end
+
 function _draw()
- camera(cam_x,cam_y)
- if game_state==state_play then
-  cls()
+ if game_state==state_title then
+  draw_title()
+ elseif game_state==state_play then
+  camera(cam_x,cam_y)
   draw_bg()
   for _,car in pairs(cars) do
    car:update()
-   car:bounds()
    car:draw()
    car:camera()
   end
@@ -219,18 +244,33 @@ end
 ----helper methods----
 ----------------------
 function show_stats(c)
- print("cam_x:"..cam_x,cam_x,cam_y,7)
- print("cam_y:"..cam_y,64+cam_x,cam_y,7)
+ print(
+  "cam_x:"..cam_x,
+  cam_x,
+  cam_y,7)
+ print(
+  "cam_y:"..cam_y,
+  cam_x+64,
+  cam_y,7)
+ print(
+  "t:"..round(t/30,2),
+  cam_x,
+  cam_y+6,7)
  print("cx",cam_x,cam_y+123,7)
- print(round(cars[1].x,1),cam_x+9,cam_y+123,9)
+ print(
+  round(cars[1].x,1),
+  cam_x+9,
+  cam_y+123,9)
  print("cy",cam_x+29,cam_y+123,7)
- print(round(cars[1].y,1),cam_x+38,cam_y+123,9)
+ print(
+  round(cars[1].y,1),
+  cam_x+38,
+  cam_y+123,9)
  print("cv",cam_x+58,cam_y+123,7)
- print(round(cars[1].spd,1),cam_x+67,cam_y+123,9)
- --print("cr",cam_x+79,cam_y+123,7)
- --print(round(cars[1].rot,2),cam_x+88,cam_y+123,9)
- print("sc",cam_x+96,cam_y+123,7)
- print(pget(c.x,c.y),cam_x+105,cam_y+123,9)
+ print(
+  round(cars[1].spd,1),
+  cam_x+67,
+  cam_y+123,9)
 end
 
 function round(num,idp)
@@ -266,15 +306,17 @@ function coll(a,b)
  end
 end
 
+function log_score()
+end
 __gfx__
-000000000b0000b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000000b33b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000703cc3070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000733333370000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000003cccc300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000003cccc300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000733333370000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000709999070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0b0000b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00b33b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+703cc307000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+73333337000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+03cccc30000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+03cccc30000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+73333337000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+70999907000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -396,7 +438,7 @@ __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
-0000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001030900000000000000000000000000010511000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 4040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
