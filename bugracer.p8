@@ -33,7 +33,9 @@ state_321go=1
 state_play=2
 state_dead=3
 state_win=4
-go_sfx=false
+f_go_sfx_played=false
+f_oils_made=false
+c_oils=0
 
 --car class
 car={}
@@ -103,6 +105,7 @@ car.update = function(self)
  if hit_wall then
   self.spd*=-1.5
  elseif hit_oil then
+  printh("on oil slick")
   self.spd*=0.5
   self.x=tx
  else self.x=tx end
@@ -117,6 +120,7 @@ car.update = function(self)
  if hit_wall then
   self.spd*=-1.5
  elseif hit_oil then
+  printh("on oil slick")
   self.spd*=0.5
   self.y=ty
  else self.y=ty end
@@ -176,8 +180,7 @@ function game_init()
  cam_y=0
  exhausts={}
  oils={}
-
- make_oils()
+ oils_to_make=flr(rnd(10))+5
  
  flag={sp=sp_flag,x=145,y=95}
  flag.box={
@@ -197,28 +200,16 @@ function game_init()
  game_state=state_321go
 end
 
-function valid_oil_coords()
- local sz=7
- local x=flr(rnd(wall_r))
- local y=x+sz
- 
- if x    > wall_l    and
-    x-sz > wall_l    and
-    x    < wall_r    and
-    x+sz < wall_r    and
-    y    > wall_t    and
-    y-sz > wall_t    and
-    y    < wall_b    and
-    y+sz < wall_b    and
-    not fget(x,0)    and
-    not fget(x+sz,0) and
-    not fget(y,0)    and
-    not fget(y+sz,0) then
-  printh("new oil-x:"..x.." y:"..y)
-  return {x=x,y=y}
- else
-  printh("oil invalid")
-  valid_oil_coords()
+function make_oils()
+ if f_oils_made==false then
+  printh("===making oils===")
+  for i=1,oils_to_make do
+   add(oils,valid_oil_coords())
+   c_oils+=1
+  end
+  printh("oils_to_make:"..oils_to_make)
+  printh("c_oils:"..c_oils)
+  f_oils_made=true
  end
 end
 
@@ -231,14 +222,6 @@ function make_zooms()
   dx=64,dy=64,dz=1})
  add(zoomg,{sp=76,w=2,h=2,
   dx=64,dy=64,dz=1})
-end
-
-function make_oils()
- printh("======making oils======")
- oil_count=flr(rnd(10))+5
- for i=1,oil_count do
-  add(oils,valid_oil_coords())
- end
 end
 
 function make_exhaust(x,y)
@@ -274,14 +257,6 @@ function update_exhaust(c)
  make_exhaust(ex_x,ex_y)
 end
 
-function game_over()
- print("game over",45,48,8)
- print("press z or x to restart",18,60,8)
- if btnp(btn_z) or btnp(btn_x) then
-  game_init()
- end
-end
-
 function draw_title()
  rectfill(wall_l,wall_t,wall_r,wall_b,1)
  for i=0,128 do
@@ -291,13 +266,13 @@ function draw_title()
      if i!=48 and
         i!=56 and 
         i!=64 then
-      print("",j,i,flr(rnd(15)))
+      print("ï¿½",j,i,flr(rnd(15)))
      end
     end
    end
   end
  end
- print("bugracer",
+ print("ï¿½bugracerï¿½",
   40,48,10)
  print("press z/x to race!",
   28,56,10)
@@ -307,27 +282,15 @@ end
 
 function draw_track()
  map(0,0,0,0,64,64)
-end
-
-function game_win(c)
- game_state=state_win
- c.spd=0
- rectfill(c.x-23,c.y-25,c.x+25,c.y-10,3)
- print("˜you win˜",c.x-20,c.y-22,7)
- print(
-  "time:"..round(t/30,1).."s",
-  c.x-20,
-  c.y-16,7)
- sfx(2)
- music(-1)
- log_score(t)
+ make_oils()
 end
 
 function update_countdown()
+ zm_o=59
  for zm3 in all(zoom3) do
   zm3.dz+=0.1
-  zm3.dx=64-(zm3.dz*6)
-  zm3.dy=64-(zm3.dz*6)
+  zm3.dx=zm_o-(zm3.dz*6)
+  zm3.dy=zm_o-(zm3.dz*6)
   if zm3.dz>=3 then
    del(zoom3,zm3)
   end
@@ -336,8 +299,8 @@ function update_countdown()
  if #zoom3==0 then
   for zm2 in all(zoom2) do
    zm2.dz+=0.1
-   zm2.dx=64-(zm2.dz*6)
-   zm2.dy=64-(zm2.dz*6)
+   zm2.dx=zm_o-(zm2.dz*6)
+   zm2.dy=zm_o-(zm2.dz*6)
    if zm2.dz>=3 then
     del(zoom2,zm2)
    end
@@ -347,8 +310,8 @@ function update_countdown()
  if #zoom2==0 then
   for zm1 in all(zoom1) do
    zm1.dz+=0.1
-   zm1.dx=64-(zm1.dz*6)
-   zm1.dy=64-(zm1.dz*6)
+   zm1.dx=zm_o-(zm1.dz*6)
+   zm1.dy=zm_o-(zm1.dz*6)
    if zm1.dz>=3 then
     del(zoom1,zm1)
    end
@@ -361,8 +324,8 @@ function update_countdown()
    if zmg.dz>=3 then
     zmg.dz=3
    end
-   zmg.dx=64-(zmg.dz*6)
-   zmg.dy=64-(zmg.dz*6)
+   zmg.dx=zm_o-(zmg.dz*6)
+   zmg.dy=zm_o-(zmg.dz*6)
    zoomg_count+=1
    if zoomg_count>=20 then
     del(zoomg,zmg)
@@ -403,10 +366,10 @@ function _update()
 end
 
 function draw_zooms()
- if go_sfx==false then
+ if f_go_sfx_played==false then
   go3_sfx=false go2_sfx=false
   go1_sfx=false gogo_sfx=false
-  go_sfx=true
+  f_go_sfx_played=true
  end
  
  if go3_sfx==false then
@@ -466,12 +429,12 @@ function _draw()
   draw_track()
   
   --exhausts
-	 for ex in all(exhausts) do
-	  circ(ex.x,ex.y,
-	   1.4/(ex.t/2.4),
-	   5+ex.t%3
-	  )
-	 end
+   for ex in all(exhausts) do
+    circ(ex.x,ex.y,
+     1.4/(ex.t/2.4),
+     5+ex.t%3
+    )
+   end
   
   --flag
   spr(flag.sp,flag.x,flag.y)
@@ -494,8 +457,32 @@ function _draw()
  end
 end
 
+function game_win(c)
+ game_state=state_win
+ c.spd=0
+ rectfill(c.x-23,c.y-25,c.x+25,c.y-10,3)
+ print("ï¿½you winï¿½",c.x-20,c.y-22,7)
+ print(
+  "time:"..round(t/30,1).."s",
+  c.x-20,
+  c.y-16,7)
+ sfx(2)
+ music(-1)
+ log_score(t)
+end
+
+function game_over()
+ print("game over",45,48,8)
+ print("press z or x to restart",18,60,8)
+ if btnp(btn_z) or btnp(btn_x) then
+  game_init()
+ end
+end
+
+----------------------
 ----------------------
 ----helper methods----
+----------------------
 ----------------------
 function show_stats(c)
  print(
@@ -563,6 +550,58 @@ function coll(a,b)
  else
   return true
  end
+end
+
+function valid_oil_coords()
+ local sz=7
+ local ox=flr(rnd(wall_r))
+ local oy=ox
+ 
+ if coord_is_free(ox,oy,sz) then
+  printh("ox:"..ox.." oy:"..oy)
+  mg1=mget(ox,oy)
+  mg2=mget(ox+sz,oy+sz)
+  fg1=fget(mg1)
+  fg2=fget(mg2)
+  if fg1==true then fg1b="true"
+  else fg1b="false" end
+  if fg2==true then fg2b="true"
+  else fg2b="false" end
+  printh("mget(ox,oy):"..mg1)
+  printh("mget(ox,oy+sz):"..mg2)
+  printh("fg1b:"..fg1b)
+  printh("fg2b:"..fg2b)
+  return {x=ox,y=oy}
+ else
+  printh("oil invalid")
+  valid_oil_coords()
+ end
+end
+
+--check if new thing's coordinates
+--are valid (only on road)
+function coord_is_free(cx,cy,csz)
+ local is_free=true
+ --is coord out bounds?
+ if cx     < wall_l    or
+    cx-csz < wall_l    or
+    cx     > wall_r    or
+    cx+csz > wall_r    or
+    cy     < wall_t    or
+    cy-csz < wall_t    or
+    cy     > wall_b    or
+    cy+csz > wall_b    then
+  is_free=false
+ end
+ --is coord on an obstacle?
+ if fget(mget(cx,cy),0)>128 or
+    fget(mget(cx+csz,cy+csz),0)>128 then
+  is_free=false
+ end
+ --todo
+ --is coord on the car?
+ --is coord on another oil?
+ return is_free
 end
 
 --access high score from cart
@@ -896,4 +935,3 @@ __music__
 00 41424344
 00 41424344
 00 41424344
-
