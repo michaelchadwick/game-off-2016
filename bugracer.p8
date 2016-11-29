@@ -195,6 +195,7 @@ function game_init()
  cam_y=0
  exhausts={}
  oils={}
+ --oils_to_make=2
  oils_to_make=flr(rnd(10))+5
  
  flag={sp=sp_flag,x=145,y=95}
@@ -269,7 +270,7 @@ function update_exhaust(c)
  elseif rt>=0.5 and
         rt<0.75 then
   ex_x=c.x-(d*((rt-0.5)*sz*3))
-  ex_y=c.y+(d*((rt*sz*4)-27))
+  ex_y=c.y+(d*((rt*sz*4)-20))
  elseif rt>=0.75 and
         rt<1 then
   ex_x=c.x+(d*((rt*sz*3)-25))
@@ -461,12 +462,14 @@ function _draw()
   draw_track()
   
   --exhausts
+  if cars[1].spd > 0 then
    for ex in all(exhausts) do
     circ(ex.x,ex.y,
      1.4/(ex.t/2.4),
      5+ex.t%3
     )
    end
+  end
   
   --flag
   spr(flag.sp,flag.x,flag.y)
@@ -486,6 +489,7 @@ function _draw()
   --game hud
   show_hud()
 
+  --show stats
   --show_stats(cars[1])
  elseif game_state==state_over then
   game_over(cars[1])
@@ -603,20 +607,20 @@ function coll(a,b)
 end
 
 function valid_oil_coords()
- local sz=7
+ local sz=8
  local ox=flr(rnd(wall_r))
  local oy=ox
  
  if coord_is_free(ox,oy,sz) then
   printh("ox:"..ox.." oy:"..oy)
-  mg1=mget(ox,oy)
-  mg2=mget(ox+sz,oy+sz)
-  fg1=fget(mg1)
-  fg2=fget(mg2)
-  if fg1==true then fg1b="true"
-  else fg1b="false" end
-  if fg2==true then fg2b="true"
-  else fg2b="false" end
+  mg1=mget(ox/sz,oy/sz)
+  mg2=mget((ox+sz)/sz,(oy+sz)/sz)
+  fg1=fget(mg1,0)
+  fg2=fget(mg2,0)
+  if fg1==true then fg1b="obs"
+  else fg1b="free" end
+  if fg2==true then fg2b="obs"
+  else fg2b="free" end
   printh("mget(ox,oy):"..mg1)
   printh("mget(ox,oy+sz):"..mg2)
   printh("fg1b:"..fg1b)
@@ -645,9 +649,14 @@ function coord_is_free(cx,cy,csz)
  end
  --is coord on an obstacle?
  if fget(mget(
-    cx,cy)) > 128 or
+     cx/csz,cy/csz
+     ),0
+    )==true or
     fget(mget(
-    cx+csz,cy+csz)) > 128 then
+     (cx+csz)/csz,
+     (cy+csz)/csz
+     ),0
+    )==true then
   is_free=false
  end
  --todo
@@ -822,7 +831,7 @@ __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
-0000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001050900000200000000000000000000011121010100000000000000000000000000000101000000000000000000000000000000000000000000000000000000
+0000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001050900010200000000000000000000011121010100000000000000000000000000000101000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 4040535353535353535353535353404040404040404040404040404040404040404040404040404040404040404040400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
