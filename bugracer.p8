@@ -164,12 +164,6 @@ function _init()
  og_x=94
  og_y=100
  rot_spd=0.03125
- zoom3={}
- zoom2={}
- zoom1={}
- zoomg={}
- zoomg_count=0
- make_zooms()
  game_state=state_title
 end
 
@@ -197,6 +191,13 @@ function game_init()
  })
  add(cars,car)
  
+ zoom3={}
+ zoom2={}
+ zoom1={}
+ zoomg={}
+ zoomg_count=0
+ make_zooms()
+
  game_state=state_321go
 end
 
@@ -241,7 +242,7 @@ function update_exhaust(c)
  elseif rt>0.25 and
         rt<0.5 then
   ex_x=c.x-(d*((rt*sz*3)-17))
-  ex_y=c.y-(d*((rt-0.25)*sz*4))
+  ex_y=c.y-(d*((rt-0.25)))
  elseif rt>=0.5 and
         rt<0.75 then
   ex_x=c.x-(d*((rt-0.5)*sz*3))
@@ -249,7 +250,7 @@ function update_exhaust(c)
  elseif rt>=0.75 and
         rt<1 then
   ex_x=c.x+(d*((rt*sz*3)-25))
-  ex_y=c.y+(d*((rt*sz*4)+2))
+  ex_y=c.y+(d*((rt*sz)+2))
  else
   ex_x=c.x
   ex_y=c.y+6
@@ -265,19 +266,26 @@ function draw_title()
     if j%8==0 then
      if i!=48 and
         i!=56 and 
-        i!=64 then
-      print("ï¿½",j,i,flr(rnd(15)))
+        i!=64 and
+        i!=120 then
+      print("",j,i,flr(rnd(15)))
      end
     end
    end
   end
  end
- print("ï¿½bugracerï¿½",
-  40,48,10)
+ print("„„bugracer„„",
+  32,48,0)
+ print("„„bugracer„„",
+  33,49,10)
  print("press z/x to race!",
   28,56,10)
  print("time to beat:"..get_high_score().."s",
   26,64,7)
+ print("game by nebyoolae - 2016",
+  16,121,0)
+ print("game by nebyoolae - 2016",
+  17,122,8)
 end
 
 function draw_track()
@@ -460,12 +468,16 @@ end
 function game_win(c)
  game_state=state_win
  c.spd=0
- rectfill(c.x-23,c.y-25,c.x+25,c.y-10,3)
- print("ï¿½you winï¿½",c.x-20,c.y-22,7)
+ rectfill(
+  c.x-23,c.y-29,
+  c.x+37,c.y-9,3)
+ print("===you win===",
+  c.x-20,c.y-27,7)
  print(
   "time:"..round(t/30,1).."s",
-  c.x-20,
-  c.y-16,7)
+  c.x-20,c.y-21,7)
+ print("z/x to restart",
+  c.x-20,c.y-15,7)
  sfx(2)
  music(-1)
  log_score(t)
@@ -594,8 +606,10 @@ function coord_is_free(cx,cy,csz)
   is_free=false
  end
  --is coord on an obstacle?
- if fget(mget(cx,cy),0)>128 or
-    fget(mget(cx+csz,cy+csz),0)>128 then
+ if fget(mget(
+    cx,cy)) > 128 or
+    fget(mget(
+    cx+csz,cy+csz)) > 128 then
   is_free=false
  end
  --todo
@@ -935,3 +949,4 @@ __music__
 00 41424344
 00 41424344
 00 41424344
+
