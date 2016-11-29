@@ -31,11 +31,20 @@ btn_x=5
 state_title=0
 state_321go=1
 state_play=2
-state_dead=3
+state_over=3
 state_win=4
 f_go_sfx_played=false
 f_oils_made=false
 c_oils=0
+
+--audio_cues
+music_stop=-1
+music_play=0
+music_title=1
+sfx_win=2
+sfx_go_num=3
+sfx_go_go=4
+sfx_over=5
 
 --car class
 car={}
@@ -50,6 +59,7 @@ car.new = function(init)
  self.spd = init.spd or 0
  self.spd_max = init.spd_max or 1.8
  self.acc_step = init.acc_step or 0.4
+ self.life = init.life or 100
  self.update = car.update
  self.draw = car.draw
  self.camera = car.camera
@@ -103,6 +113,7 @@ car.update = function(self)
  local hit_wall=fget(id,0)
  local hit_oil=fget(id,1)
  if hit_wall then
+  self.life-=(self.spd*50)
   self.spd*=-1.5
  elseif hit_oil then
   printh("on oil slick")
@@ -118,12 +129,19 @@ car.update = function(self)
  hit_wall=fget(id,0)
  hit_oil=fget(id,1)
  if hit_wall then
+  self.life-=(self.spd*2)
   self.spd*=-1.5
  elseif hit_oil then
   printh("on oil slick")
   self.spd*=0.5
   self.y=ty
  else self.y=ty end
+
+ --life depleted
+ if self.life<=0 then
+  sfx(sfx_over)
+  game_over(self)
+ end
 
  --end flag
  if coll(self,flag) then
@@ -164,7 +182,10 @@ function _init()
  og_x=94
  og_y=100
  rot_spd=0.03125
+ cam_x=0
+ cam_y=0
  game_state=state_title
+ music(music_title)
 end
 
 function game_init()
@@ -191,6 +212,7 @@ function game_init()
  })
  add(cars,car)
  
+ f_go_sfx_played=false
  zoom3={}
  zoom2={}
  zoom1={}
@@ -199,6 +221,7 @@ function game_init()
  make_zooms()
 
  game_state=state_321go
+ music(music_stop)
 end
 
 function make_oils()
@@ -338,7 +361,7 @@ function update_countdown()
    if zoomg_count>=20 then
     del(zoomg,zmg)
     zoomg_count=0
-    music(0)
+    music(music_play)
     game_state=state_play
    end
   end
@@ -363,11 +386,12 @@ function _update()
     del(exhausts,ex)
    end
   end
- elseif game_state==state_dead then
-  game_over()
+ elseif game_state==state_over then
+  if btnp(btn_z) or btnp(btn_x) then
+   game_init()
+  end
  elseif game_state==state_win then
   if btnp(btn_z) or btnp(btn_x) then
-   t=0
    game_init()
   end
  end
@@ -381,7 +405,7 @@ function draw_zooms()
  end
  
  if go3_sfx==false then
-  sfx(3)
+  sfx(sfx_go_num)
   go3_sfx=true
  end
  
@@ -392,7 +416,7 @@ function draw_zooms()
  
  if #zoom3==0 then
   if go2_sfx==false then
-   sfx(3)
+   sfx(sfx_go_num)
    go2_sfx=true
   end
   for zm in all(zoom2) do
@@ -403,7 +427,7 @@ function draw_zooms()
  
  if #zoom2==0 then
   if go1_sfx==false then
-   sfx(3)
+   sfx(sfx_go_num)
    go1_sfx=true
   end
   for zm in all(zoom1) do
@@ -414,7 +438,7 @@ function draw_zooms()
  
  if #zoom1==0 then
   if gogo_sfx==false then
-   sfx(4)
+   sfx(sfx_go_go)
    gogo_sfx=true
   end
   for zm in all(zoomg) do
@@ -459,9 +483,12 @@ function _draw()
    car:camera()
   end
   
+  --game hud
+  show_hud()
+
   --show_stats(cars[1])
- elseif game_state==state_dead then
-  game_over()
+ elseif game_state==state_over then
+  game_over(cars[1])
  end
 end
 
@@ -478,17 +505,21 @@ function game_win(c)
   c.x-20,c.y-21,7)
  print("z/x to restart",
   c.x-20,c.y-15,7)
- sfx(2)
- music(-1)
+ sfx(sfx_win)
+ music(music_stop)
  log_score(t)
 end
 
-function game_over()
- print("game over",45,48,8)
- print("press z or x to restart",18,60,8)
- if btnp(btn_z) or btnp(btn_x) then
-  game_init()
- end
+function game_over(c)
+ game_state=state_over
+ c.spd=0
+ rectfill(
+  c.x-36,c.y-22,
+  c.x+30,c.y-5,2)
+ print("game over",
+  c.x-18,c.y-19,15)
+ print("z/x to restart",
+  c.x-30,c.y-11,8)
 end
 
 ----------------------
@@ -529,6 +560,13 @@ function show_stats(c)
   round(cars[1].rot,2),
   cam_x+96,
   cam_y+123,9)
+end
+
+function show_hud()
+ print("t:"..round(t/30,1),
+  cam_x,cam_y,7)
+ print("l:"..flr(cars[1].life),
+  cam_x,cam_y+6,7)
 end
 
 function round(num,idp)
@@ -825,9 +863,9 @@ __sfx__
 0110000010140141301913028112281122811228112281120000000000000001c1021c1021c102000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 011000000f0500f0420f0320f0220f012000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 011000001b0501b0421b0321b0221b012000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+011000001d1501c1511b1511a15119131171211611115111141562113614126211160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+01100000172222320000000000001c2220000000000000001e220202201e2201c2221c2001c200000001c2201e22000000202200000021220202201e2201a2201a22200000122200000014220000001522015200
+011000000b0230000000000000000b0230000000000000000b0230000000000000000b0230000000000000000b0230000000000000000b0230000000000000000b02300000170230000017023000001702300000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -885,8 +923,8 @@ __sfx__
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __music__
-02 00014344
-00 41424344
+03 00014344
+03 06074344
 00 41424344
 00 41424344
 00 41424344
