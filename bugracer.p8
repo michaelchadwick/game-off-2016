@@ -113,7 +113,8 @@ car.update = function(self)
  local hit_wall=fget(id,0)
  local hit_oil=fget(id,1)
  if hit_wall then
-  self.life-=(self.spd*2)
+  self.life-=(abs(self.spd)*2)
+  rectfill(0,0,wall_r,wall_b,8)
   self.spd*=-1.5
  elseif hit_oil then
   printh("on oil slick")
@@ -129,7 +130,8 @@ car.update = function(self)
  hit_wall=fget(id,0)
  hit_oil=fget(id,1)
  if hit_wall then
-  self.life-=(self.spd*2)
+  self.life-=(abs(self.spd)*2)
+  rectfill(0,0,wall_r,wall_b,8)
   self.spd*=-1.5
  elseif hit_oil then
   printh("on oil slick")
