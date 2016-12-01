@@ -2,6 +2,23 @@
 
 ![GitHub Game Off 2016 Theme is Hacking, Modding, or Augmenting](https://cloud.githubusercontent.com/assets/121322/19498019/d8827370-9543-11e6-82d8-6da822b6147b.png)
 
+## Axeracer
+
+![Axeracer gameplay](http://games.codana.me/games/pico8/axeracer/axeracer_gameplay.png)
+
+Axeracer is a 1-player, overhead racing game where you drive a bug-like creature around a track. It has axes for antennae, all the better for *hacking* away the grass in its way to the finish line. The game goes on infinitely, so keep trying to beat your past lap time!
+
+**[Play Axeracer](http://games.codana.me/games/pico8/axeracer/axeracer.html) on the web now!**
+
+### Controls
+**Up** - accelerate  
+**Left/Right** - rotate  
+**Down** - reverse  
+**Z** - hold down while accelerating for a boost
+
+### Technology
+[Pico-8](http://lexaloffle.com/pico8.php) powers this retro arcade game. Load the `.p8` file into Pico-8 to see/modify the source of the game and do whatever you want with it.
+
 ## The Challenge
 
 *I* have the entire month of November to create a game *loosely* based on the theme **hacking, modding and/or augmenting**.
@@ -21,9 +38,9 @@ _Github_ will highlight some of _their_ favorites on the GitHub blog, and the wo
 * ~~[Sign up for a free personal account][github-signup] if you don't already have one.~~
 * ~~Fork [this repository][game-off-repo] to _my_ personal account (or to a [free organization account][github-signup-org]).~~
 * ~~Clone the repository on _my_ computer~~ and build _my_ game.
-* Push _my_ game source code to _my_ forked repository before Dec 1st.
-* Update the `README.md` file to include a description of _my_ game, how/where to play/download it, how to build/compile it, what dependencies it has, etc.
-* Submit _my_ final game using this [form][wufoo-form].
+* ~~Push _my_ game source code to _my_ forked repository before Dec 1st.~~
+* ~~Update the `README.md` file to include a description of _my_ game, how/where to play/download it, how to build/compile it, what dependencies it has, etc.~~
+* ~~Submit _my_ final game using this [form][wufoo-form].~~
 
 <!-- links -->
 [game-off-repo]:        https://github.com/github/game-off-2016/
