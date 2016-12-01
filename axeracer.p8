@@ -117,6 +117,10 @@ car.update = function(self)
    self.spd_max,
    self.spd+self.acc_step
   )
+  --turbo!
+  if btn(btn_z) then
+   self.spd+=1
+  end
  ----go backward
  elseif btn(btn_d) then
   self.spd=max(-1,self.spd-0.4)
