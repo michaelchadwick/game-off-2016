@@ -4,11 +4,11 @@
 
 ## Axeracer
 
-![Axeracer gameplay](https://codana.me/src/pico8/axeracer/axeracer_gameplay.png)
+![Axeracer gameplay](https://codana.me/games/src/pico8/axeracer/axeracer_gameplay.png)
 
 Axeracer is a 1-player, overhead racing game where you drive a bug-like creature around a track. It has axes for antennae, all the better for *hacking* away the grass in its way to the finish line. The game goes on infinitely, so keep trying to beat your past lap time!
 
-**[Play Axeracer](https://codana.me/games/pico8/axeracer/axeracer.html) on the web now!**
+**[Play Axeracer](https://codana.me/games/src/pico8/axeracer/axeracer.html) on the web now!**
 
 ### Controls
 **Up** - accelerate  
