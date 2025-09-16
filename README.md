@@ -4,16 +4,16 @@
 
 ## Axeracer
 
-![Axeracer gameplay](https://codana.me/games/src/pico8/axeracer/axeracer_gameplay.png)
+![Axeracer gameplay](https://neb.host/games/pico8/axeracer/axeracer_gameplay.png)
 
 Axeracer is a 1-player, overhead racing game where you drive a bug-like creature around a track. It has axes for antennae, all the better for *hacking* away the grass in its way to the finish line. The game goes on infinitely, so keep trying to beat your past lap time!
 
-**[Play Axeracer](https://codana.me/games/src/pico8/axeracer/axeracer.html) on the web now!**
+**[Play Axeracer](https://neb.host/games/pico8/axeracer/axeracer.html) on the web now!**
 
 ### Controls
-**Up** - accelerate  
-**Left/Right** - rotate  
-**Down** - reverse  
+**Up** - accelerate
+**Left/Right** - rotate
+**Down** - reverse
 **Z** - hold down while accelerating for a boost
 
 ### Technology
@@ -47,7 +47,7 @@ _Github_ will highlight some of _their_ favorites on the GitHub blog, and the wo
 [game-off-repo-issues]: https://github.com/github/game-off-2016/issues
 [git-documentation]:    https://git-scm.com/documentation
 [github-help]:          https://help.github.com/
-[github-signup]:        https://github.com/signup/free  
+[github-signup]:        https://github.com/signup/free
 [github-signup-org]:    https://github.com/organizations/new
 [github-support]:       https://github.com/contact?form%5Bsubject%5D=GitHub%20Game%20Off
 [wufoo-form]:           https://gameoff.wufoo.com/forms/game-off-2016/
